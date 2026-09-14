@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Quiz | AI Quiz Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
+                <span class="fw-bold">AI Quiz Generator</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#uploadNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="uploadNav">
+                <ul class="navbar-nav ms-auto align-items-center gap-2 mt-3 mt-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ url_for('dashboard') }}">
+                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active fw-bold text-white" href="{{ url_for('upload') }}">
+                            <i class="bi bi-plus-circle me-1"></i> Create Quiz
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ url_for('history') }}">
+                            <i class="bi bi-journal-text me-1"></i> Quiz History
+                        </a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-outline-danger btn-sm" href="{{ url_for('logout') }}">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container my-4 py-2">
+
+        <!-- Page Header -->
+        <div class="mb-4">
+            <h2 class="fw-bold mb-1">Generate AI Quiz</h2>
+            <p class="text-muted">Choose to upload a textbook/notes PDF or paste your study notes below.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Column: Source Material (Tabs for PDF & Notes) -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm p-4 h-100">
+                    <!-- Nav Tabs -->
+                    <ul class="nav nav-pills mb-3" id="materialTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-semibold" id="pdf-tab" data-bs-toggle="pill" data-bs-target="#pdf-pane" type="button" role="tab">
+                                <i class="bi bi-file-earmark-pdf me-1 text-danger"></i> Upload PDF
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-semibold" id="notes-tab" data-bs-toggle="pill" data-bs-target="#notes-pane" type="button" role="tab">
+                                <i class="bi bi-pencil-square me-1 text-primary"></i> Paste Study Notes
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Panes -->
+                    <div class="tab-content" id="materialTabContent">
+                        <!-- Tab 1: Upload PDF -->
+                        <div class="tab-pane fade show active" id="pdf-pane" role="tabpanel">
+                            <div class="border border-2 border-dashed rounded-3 p-4 text-center bg-light mb-3">
+                                <div class="fs-1 text-danger mb-2"><i class="bi bi-cloud-arrow-up-fill"></i></div>
+                                <h6 class="fw-bold mb-1">Choose a PDF Document</h6>
+                                <p class="text-muted small mb-3">Text will be extracted automatically via PyPDF2</p>
+                                <input type="file" id="pdfFileInput" class="form-control d-none" accept=".pdf" onchange="handlePdfUpload(this)">
+                                <button type="button" class="btn btn-outline-danger btn-sm px-3" onclick="document.getElementById('pdfFileInput').click()">
+                                    <i class="bi bi-folder2-open me-1"></i> Browse Computer
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: Paste Notes -->
+                        <div class="tab-pane fade" id="notes-pane" role="tabpanel">
+                            <div class="mb-3">
+                                <label for="rawNotesInput" class="form-label fw-semibold">Paste Your Study Notes Here:</label>
+                                <textarea class="form-control" id="rawNotesInput" rows="7" 
+                                          placeholder="Type or paste lecture summaries, definitions, syllabus topics, or textbook paragraphs here..."
+                                          oninput="document.getElementById('studyMaterialText').value = this.value"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden/Shared Study Material Textarea (Stores current active text) -->
+                    <div class="mb-3">
+                        <label for="studyMaterialText" class="form-label fw-bold d-flex justify-content-between align-items-center">
+                            <span>Active Text for AI Analysis:</span>
+                            <button type="button" class="btn btn-link btn-sm text-decoration-none p-0" 
+                                    onclick="document.getElementById('studyMaterialText').value=''; document.getElementById('extractedTextPreview').textContent='';">
+                                Clear Text
+                            </button>
+                        </label>
+                        <textarea class="form-control font-monospace small" id="studyMaterialText" rows="6" 
+                                  placeholder="Extracted PDF text or pasted notes will appear here. You can also edit this directly before generating questions."></textarea>
+                    </div>
+
+                    <!-- Extracted Text Preview Card (Shown after PDF extraction) -->
+                    <div id="textPreviewCard" class="card bg-light border-0 p-3 mt-2" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-semibold small text-success">
+                                <i class="bi bi-check-circle-fill me-1"></i> Text Extracted Successfully
+                            </span>
+                            <span id="extractedStats" class="badge bg-secondary small"></span>
+                        </div>
+                        <div id="extractedTextPreview" class="preview-box border bg-white"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Quiz Configuration Panel -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm p-4 h-100">
+                    <h5 class="fw-bold mb-3 d-flex align-items-center">
+                        <i class="bi bi-sliders me-2 text-primary"></i> Quiz Configuration
+                    </h5>
+
+                    <div class="mb-3">
+                        <label for="quizTitle" class="form-label fw-semibold">Quiz Title</label>
+                        <input type="text" class="form-control" id="quizTitle" placeholder="e.g. Operating Systems Chapter 3">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="numQuestions" class="form-label fw-semibold">Number of Questions</label>
+                        <select class="form-select" id="numQuestions">
+                            <option value="3">3 Questions (Quick Test)</option>
+                            <option value="5" selected>5 Questions (Recommended)</option>
+                            <option value="10">10 Questions (Standard)</option>
+                            <option value="15">15 Questions (Full Test)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="quizDifficulty" class="form-label fw-semibold">Difficulty Level</label>
+                        <select class="form-select" id="quizDifficulty">
+                            <option value="Easy">Easy (Basic Recall & Definitions)</option>
+                            <option value="Medium" selected>Medium (Conceptual & Application)</option>
+                            <option value="Hard">Hard (In-depth Analysis)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="questionType" class="form-label fw-semibold">Question Type</label>
+                        <select class="form-select" id="questionType">
+                            <option value="MCQ" selected>Multiple Choice (4 Options)</option>
+                            <option value="True/False">True / False Questions</option>
+                            <option value="Mixed">Mixed (Both MCQ & True/False)</option>
+                        </select>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 mb-4">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-info-circle-fill text-primary mt-1"></i>
+                            <p class="small text-muted mb-0">
+                                <strong>Smart AI Engine:</strong> Uses Google Gemini API with fallback to offline sample mode if the API key is not configured in <code>.env</code>.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary w-100 py-3 fw-bold shadow-sm mb-2" onclick="generateAndStartQuiz()">
+                        <i class="bi bi-play-circle-fill me-2"></i> Generate & Start Quiz
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary w-100 py-2 small" onclick="triggerQuizGeneration()">
+                        <i class="bi bi-pencil-square me-1"></i> Optional: Review / Edit Questions First
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Quiz Preview & Customization (Appears after generation) -->
+        <section id="quizPreviewSection" class="mt-5" style="display: none;">
+            <div class="card border-0 shadow-sm p-4 p-md-5">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-3 border-bottom">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <h4 class="fw-bold mb-0" id="previewTitle">Generated Quiz Preview</h4>
+                            <span id="generationModeBadge" class="badge bg-success-subtle text-success border border-success-subtle"></span>
+                        </div>
+                        <p class="text-muted small mb-0">
+                            Review and edit questions, options, or correct answers before saving.
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary" onclick="saveGeneratedQuiz(false)">
+                            <i class="bi bi-save me-1"></i> Save to History
+                        </button>
+                        <button type="button" class="btn btn-success fw-bold" onclick="saveGeneratedQuiz(true)">
+                            <i class="bi bi-play-circle-fill me-1"></i> Save & Attempt Now
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Generated Questions Editable List -->
+                <div id="previewQuestionsList"></div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <button type="button" class="btn btn-outline-secondary" onclick="saveGeneratedQuiz(false)">
+                        <i class="bi bi-save me-1"></i> Save to History
+                    </button>
+                    <button type="button" class="btn btn-success fw-bold" onclick="saveGeneratedQuiz(true)">
+                        <i class="bi bi-play-circle-fill me-1"></i> Save & Attempt Now
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="spinner-border text-light mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+        <h5 id="loadingMessage" class="fw-bold text-center px-3">Analyzing text and generating quiz...</h5>
+        <p class="text-white-50 small mb-0">This takes just a few seconds.</p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-3 mt-auto">
+        <div class="container text-center">
+            <p class="text-muted small mb-0">BSc Computer Science Final Project &copy; 2026</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Quiz Generator | Smart Quizzes from PDF & Notes</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top py-3 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
+                <span class="fw-bold">AI Quiz Generator</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav ms-auto align-items-center gap-2 mt-3 mt-lg-0">
+                    {% if current_user %}
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ url_for('dashboard') }}">
+                                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ url_for('history') }}">
+                                <i class="bi bi-journal-bookmark me-1"></i> My Quizzes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">
+                                <i class="bi bi-box-arrow-right me-1"></i> Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ url_for('login') }}">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary btn-sm px-3" href="{{ url_for('register') }}">
+                                <i class="bi bi-person-plus me-1"></i> Register Free
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Hero Section -->
+    <header class="hero-section text-center text-white py-5">
+        <div class="container py-4">
+            <span class="hero-badge"><i class="bi bi-stars me-1"></i> Powered by Google Gemini AI & PyPDF2</span>
+            <h1 class="display-4 fw-bold mb-3">AI-Based Quiz Generator<br>from PDF & Study Notes</h1>
+            <p class="lead text-light mb-4 mx-auto" style="max-width: 650px;">
+                Transform your college textbooks, lecture PDFs, and revision notes into interactive multiple-choice and True/False quizzes in seconds.
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="{{ url_for('register') }}" class="btn btn-light btn-lg px-4 py-2 text-primary fw-bold shadow">
+                    <i class="bi bi-rocket-takeoff me-2"></i> Get Started Now
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg px-4 py-2 fw-semibold">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Student Login
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Key Features Section -->
+    <main class="container my-5 py-4">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">How It Works</h2>
+            <p class="text-muted">Everything you need for exam preparation and active recall</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 p-4 text-center border-0 shadow-sm">
+                    <div class="fs-1 text-primary mb-3">
+                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                    </div>
+                    <h5 class="fw-bold">1. Upload PDF or Notes</h5>
+                    <p class="text-muted">
+                        Easily upload textbook chapters, assignment handouts, or paste raw study notes. PyPDF2 automatically extracts all text.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 p-4 text-center border-0 shadow-sm">
+                    <div class="fs-1 text-primary mb-3">
+                        <i class="bi bi-cpu-fill"></i>
+                    </div>
+                    <h5 class="fw-bold">2. AI Quiz Generation</h5>
+                    <p class="text-muted">
+                        Google Gemini AI analyzes key concepts and crafts tailored MCQs and True/False questions across Easy, Medium, and Hard levels.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 p-4 text-center border-0 shadow-sm">
+                    <div class="fs-1 text-primary mb-3">
+                        <i class="bi bi-trophy-fill"></i>
+                    </div>
+                    <h5 class="fw-bold">3. Attempt & Review</h5>
+                    <p class="text-muted">
+                        Take interactive quizzes, receive immediate grading and score calculations, read detailed explanations, and review your quiz history.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Highlights Banner -->
+        <div class="card bg-white mt-5 p-4 p-md-5 border-0 shadow-sm rounded-4">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h3 class="fw-bold mb-2">Designed for College Students & Educators</h3>
+                    <p class="text-muted mb-3">
+                        Features secure SQLite storage, password encryption, sample fallback generation for offline use, and full quiz customization before saving.
+                    </p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                            <i class="bi bi-check-circle-fill me-1"></i> PyPDF2 Integration
+                        </span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                            <i class="bi bi-check-circle-fill me-1"></i> Google Gemini AI
+                        </span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                            <i class="bi bi-check-circle-fill me-1"></i> SQLite Database
+                        </span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                            <i class="bi bi-check-circle-fill me-1"></i> Offline Fallback Mode
+                        </span>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg w-100 w-lg-auto">
+                        Create Free Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-4 mt-auto">
+        <div class="container text-center">
+            <p class="mb-1 fw-semibold">AI-Based Quiz Generator from PDF / Notes</p>
+            <p class="text-muted small mb-0">BSc Computer Science Final Year Project &copy; 2026</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Result | {{ result.quiz_title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
+                <span class="fw-bold">AI Quiz Generator</span>
+            </a>
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('dashboard') }}">
+                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </a>
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('history') }}">
+                    <i class="bi bi-journal-text me-1"></i> Quiz History
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Results Section -->
+    <main class="container my-4 py-2">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+
+                <!-- Score Summary Card -->
+                <div class="card border-0 shadow-sm p-4 p-md-5 mb-4">
+                    <div class="text-center mb-4">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 mb-2">
+                            <i class="bi bi-award-fill me-1"></i> Quiz Completed
+                        </span>
+                        <h2 class="fw-bold mb-1">Quiz Result</h2>
+                        <h5 class="text-secondary fw-semibold">Quiz: {{ result.quiz_title }}</h5>
+                    </div>
+
+                    <div class="row align-items-center g-4 mb-4">
+                        <!-- Score Circle -->
+                        <div class="col-md-5 text-center border-end-md">
+                            {% set pct = result.percentage %}
+                            <div class="score-circle {% if pct >= 75 %}score-high{% elif pct >= 50 %}score-med{% else %}score-low{% endif %}">
+                                <div class="fs-2 lh-1">{{ result.score }}/{{ result.total_questions }}</div>
+                                <small class="fw-normal">{{ pct }}%</small>
+                            </div>
+
+                            <h5 class="fw-bold mb-1">
+                                {% if pct >= 90 %}
+                                    🎉 Outstanding Performance!
+                                {% elif pct >= 75 %}
+                                    👏 Great Job! Well Prepared.
+                                {% elif pct >= 50 %}
+                                    👍 Good Effort! Keep Revising.
+                                {% else %}
+                                    📚 Needs More Practice.
+                                {% endif %}
+                            </h5>
+                            <p class="text-muted small mb-0">Difficulty: <span class="badge bg-secondary">{{ result.difficulty }}</span></p>
+                        </div>
+
+                        <!-- Summary Statistics Grid -->
+                        <div class="col-md-7">
+                            <div class="bg-light p-3 rounded-4 border">
+                                <h6 class="fw-bold mb-3 text-dark border-bottom pb-2">
+                                    <i class="bi bi-bar-chart-fill text-primary me-1"></i> Performance Overview
+                                </h6>
+                                <div class="row g-2 text-center">
+                                    <div class="col-6">
+                                        <div class="p-2 bg-white rounded-3 border">
+                                            <div class="text-muted small">Total Questions</div>
+                                            <div class="fs-5 fw-bold text-dark">{{ result.total_questions }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 bg-white rounded-3 border">
+                                            <div class="text-muted small">Score</div>
+                                            <div class="fs-5 fw-bold text-primary">{{ result.score }} / {{ result.total_questions }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-2 bg-white rounded-3 border border-success-subtle">
+                                            <div class="text-success small fw-semibold">Correct</div>
+                                            <div class="fs-5 fw-bold text-success">{{ result.correct_answers }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-2 bg-white rounded-3 border border-danger-subtle">
+                                            <div class="text-danger small fw-semibold">Wrong</div>
+                                            <div class="fs-5 fw-bold text-danger">{{ result.wrong_answers }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-2 bg-white rounded-3 border border-warning-subtle">
+                                            <div class="text-warning small fw-semibold">Unanswered</div>
+                                            <div class="fs-5 fw-bold text-warning">{{ result.unanswered }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-center gap-2 flex-wrap pt-3 border-top">
+                        <button type="button" class="btn btn-success px-4 fw-bold" onclick="toggleResultAnswers()">
+                            <i id="toggleAnswersBtnIcon" class="bi bi-eye me-1"></i> 
+                            <span id="toggleAnswersBtnText">Show Detailed Answers</span>
+                        </button>
+                        <a href="{{ url_for('attempt_quiz', quiz_id=result.quiz_id) }}" class="btn btn-primary px-4">
+                            <i class="bi bi-arrow-repeat me-1"></i> Retake Quiz
+                        </a>
+                        <a href="{{ url_for('upload') }}" class="btn btn-outline-primary px-4">
+                            <i class="bi bi-plus-circle me-1"></i> Create New Quiz
+                        </a>
+                        <a href="{{ url_for('history') }}" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-journal-text me-1"></i> Quiz History
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Detailed Question Breakdown (Revealed when student clicks Show Detailed Answers) -->
+                <div id="detailedAnswersContainer" class="card border-0 shadow-sm p-4 p-md-5 mb-5" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                        <div>
+                            <h4 class="fw-bold mb-1">
+                                <i class="bi bi-card-checklist text-primary me-2"></i> Detailed Answers & Explanations
+                            </h4>
+                            <p class="text-muted small mb-0">Review each question with your answer, the correct answer, and reasoning.</p>
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleResultAnswers()">
+                            <i class="bi bi-eye-slash me-1"></i> Hide
+                        </button>
+                    </div>
+
+                    {% for item in result.results_detail %}
+                        <div class="review-item {% if item.is_correct %}correct{% else %}incorrect{% endif %} mb-4 p-4 rounded-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold mb-0 text-dark">
+                                    Question {{ loop.index }}:
+                                </h6>
+                                {% if item.is_correct %}
+                                    <span class="badge bg-success px-3 py-2">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Status: Correct
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger px-3 py-2">
+                                        <i class="bi bi-x-circle-fill me-1"></i> Status: Incorrect
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <p class="fw-semibold fs-6 mb-3 text-dark">{{ item.question }}</p>
+
+                            <!-- Answer Comparison Box -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-white rounded border {% if not item.is_correct %}border-danger border-2{% endif %} h-100">
+                                        <span class="text-muted small fw-bold d-block text-uppercase mb-1">Your Answer:</span>
+                                        {% if item.selected_answer %}
+                                            <span class="fw-bold {% if item.is_correct %}text-success{% else %}text-danger{% endif %}">
+                                                {% if item.is_correct %}<i class="bi bi-check me-1"></i>{% else %}<i class="bi bi-x me-1"></i>{% endif %}
+                                                {{ item.selected_answer }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted fst-italic">
+                                                <i class="bi bi-dash-circle me-1"></i> Not Answered
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-white rounded border border-success border-2 h-100">
+                                        <span class="text-muted small fw-bold d-block text-uppercase mb-1">Correct Answer:</span>
+                                        <span class="fw-bold text-success">
+                                            <i class="bi bi-check-circle-fill me-1"></i> {{ item.correct_answer }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Options Breakdown -->
+                            <div class="small mb-3">
+                                <span class="text-muted fw-semibold d-block mb-1">All Options:</span>
+                                <div class="d-flex flex-column gap-1">
+                                    {% for opt in item.options %}
+                                        <div class="p-2 px-3 rounded 
+                                            {% if opt == item.correct_answer %}
+                                                bg-success text-white fw-bold
+                                            {% elif opt == item.selected_answer and not item.is_correct %}
+                                                bg-danger text-white
+                                            {% else %}
+                                                bg-white text-secondary border
+                                            {% endif %}">
+                                            <span class="me-2">
+                                                {% if opt == item.correct_answer %}
+                                                    <i class="bi bi-check-circle-fill"></i>
+                                                {% elif opt == item.selected_answer and not item.is_correct %}
+                                                    <i class="bi bi-x-circle-fill"></i>
+                                                {% else %}
+                                                    <i class="bi bi-circle"></i>
+                                                {% endif %}
+                                            </span>
+                                            {{ opt }}
+                                            {% if opt == item.correct_answer %}
+                                                <span class="badge bg-white text-success ms-2">Correct</span>
+                                            {% endif %}
+                                            {% if opt == item.selected_answer and not item.is_correct %}
+                                                <span class="badge bg-white text-danger ms-2">You Selected</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Explanation Box -->
+                            {% if item.explanation %}
+                                <div class="p-3 rounded bg-white border border-light-subtle small">
+                                    <strong class="text-dark d-block mb-1">
+                                        <i class="bi bi-lightbulb-fill text-warning me-1"></i> Explanation:
+                                    </strong>
+                                    <span class="text-secondary">{{ item.explanation }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <a href="{{ url_for('history') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-journal-text me-1"></i> Back to Quiz History
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-3 mt-auto">
+        <div class="container text-center">
+            <p class="text-muted small mb-0">BSc Computer Science Final Project &copy; 2026</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

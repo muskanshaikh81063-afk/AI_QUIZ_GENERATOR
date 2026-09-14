@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attempt Quiz | {{ quiz.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
+                <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
+                <span class="fw-bold">AI Quiz Generator</span>
+            </a>
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-sm" 
+                   onclick="return confirm('Exit quiz? Any unsaved answers will be lost.')">
+                    <i class="bi bi-x-circle me-1"></i> Exit Quiz
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Quiz Attempt Interface -->
+    <main class="container my-4 py-2">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+
+                <!-- Header / Progress Card -->
+                <div class="card border-0 shadow-sm p-4 mb-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                        <div>
+                            <h4 class="fw-bold mb-1">{{ quiz.title }}</h4>
+                            <span class="badge {% if quiz.difficulty == 'Easy' %}bg-success{% elif quiz.difficulty == 'Hard' %}bg-danger{% else %}bg-warning text-dark{% endif %} me-2">
+                                {{ quiz.difficulty }}
+                            </span>
+                            <span class="text-muted small">Total Questions: {{ questions|length }}</span>
+                        </div>
+                        <div class="text-md-end">
+                            <span id="quizProgressText" class="fw-bold text-primary">Question 1 of {{ questions|length }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress" style="height: 8px;">
+                        <div id="quizProgressBar" class="progress-bar bg-primary" role="progressbar" 
+                             style="width: {{ (1 / questions|length) * 100 }}%;"></div>
+                    </div>
+
+                    <!-- Question Jump Navigation Palette -->
+                    <div class="d-flex flex-wrap gap-2 mt-3 pt-3 border-top justify-content-center">
+                        {% for q in questions %}
+                            <button type="button" id="nav-btn-{{ loop.index0 }}" 
+                                    class="btn btn-sm btn-outline-secondary question-nav-btn"
+                                    onclick="showQuestionStep({{ loop.index0 }})">
+                                {{ loop.index }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Questions Container -->
+                <form id="quizAttemptForm" onsubmit="event.preventDefault();">
+                    {% for q in questions %}
+                        {% set q_idx = loop.index0 %}
+                        <div id="q-step-{{ q_idx }}" class="card border-0 shadow-sm p-4 p-md-5 mb-4" 
+                             style="{% if not loop.first %}display: none;{% endif %}">
+
+                            <input type="hidden" id="qid_{{ q_idx }}" value="{{ q.id }}">
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge bg-secondary-subtle text-secondary border px-3 py-1">
+                                    Question {{ loop.index }} of {{ questions|length }} &bull; {{ q.question_type }}
+                                </span>
+                            </div>
+
+                            <h5 class="fw-bold mb-4" style="line-height: 1.5;">
+                                {{ q.question }}
+                            </h5>
+
+                            <!-- Options List -->
+                            <div class="options-container mb-4">
+                                {% for opt in q.options %}
+                                    <div>
+                                        <input type="radio" class="option-input" 
+                                               id="opt_{{ q.id }}_{{ loop.index0 }}" 
+                                               name="answer_q_{{ q_idx }}" 
+                                               value="{{ opt }}"
+                                               onchange="markAnswerSelected({{ q_idx }}, '{{ q.id }}', '{{ opt }}')">
+                                        <label class="option-label" for="opt_{{ q.id }}_{{ loop.index0 }}">
+                                            <span class="fw-semibold me-2">
+                                                {% if q.question_type == 'MCQ' %}
+                                                    {{ ['A', 'B', 'C', 'D'][loop.index0] if loop.index0 < 4 else loop.index }}.
+                                                {% else %}
+                                                    &bull;
+                                                {% endif %}
+                                            </span>
+                                            {{ opt }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                        </div>
+                    {% endfor %}
+
+                    <!-- Navigation Controls -->
+                    <div class="card border-0 shadow-sm p-3 mb-5">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="button" id="quizPrevBtn" class="btn btn-outline-secondary px-4" 
+                                    onclick="prevQuestion()" disabled>
+                                <i class="bi bi-arrow-left me-1"></i> Previous
+                            </button>
+
+                            <button type="button" id="quizNextBtn" class="btn btn-primary px-4" 
+                                    onclick="nextQuestion()">
+                                Next <i class="bi bi-arrow-right ms-1"></i>
+                            </button>
+
+                            <button type="button" id="quizSubmitBtn" class="btn btn-success px-4 fw-bold" 
+                                    style="display: none;" onclick="submitQuizAnswers({{ quiz.id }})">
+                                <i class="bi bi-check2-circle me-1"></i> Submit Quiz
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="spinner-border text-light mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+        <h5 id="loadingMessage" class="fw-bold text-center px-3">Submitting your answers...</h5>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-3 mt-auto">
+        <div class="container text-center">
+            <p class="text-muted small mb-0">BSc Computer Science Final Project &copy; 2026</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            initQuizPlayer({{ questions|length }});
+        });
+    </script>
+</body>
+</html>
