@@ -251,6 +251,57 @@ AI Quiz Generator server starting on http://127.0.0.1:5000 ...
 **Q4. What happens if there is no internet connection or no Gemini API key?**  
 *Answer:* The application implements a graceful fallback mechanism (`generate_fallback_quiz` in `services/ai_service.py`). It analyzes the uploaded text, extracts sentences and key terms, and constructs working MCQs and True/False questions so the project remains 100% operational.
 
+## 🌐 Cloud Deployment Guide (Free on Render)
+
+Deploy your project online in a few minutes so anyone can access it:
+
+### Option A: Deploy on Render.com (Recommended & Free)
+1. **Push your code to GitHub**:
+   - Create a new repository on [GitHub](https://github.com) named `AI_QUIZ_GENERATOR`.
+   - Push your code to GitHub:
+     ```bash
+     git init
+     git add .
+     git commit -m "Initial commit of AI Quiz Generator"
+     git branch -M main
+     git remote add origin https://github.com/YOUR_USERNAME/AI_QUIZ_GENERATOR.git
+     git push -u origin main
+     ```
+2. **Deploy on Render**:
+   - Go to [render.com](https://render.com) and create a free account.
+   - Click **New +** and choose **Web Service**.
+   - Connect your GitHub repository `AI_QUIZ_GENERATOR`.
+   - Fill in the settings:
+     - **Name**: `ai-quiz-generator`
+     - **Runtime**: `Python 3`
+     - **Build Command**: `pip install -r requirements.txt`
+     - **Start Command**: `gunicorn app:app`
+   - Under **Environment Variables**, add:
+     - `SECRET_KEY`: `any_random_secret_string`
+     - `GEMINI_API_KEY`: `your_gemini_api_key_here` (optional, leave blank for sample mode)
+   - Click **Deploy Web Service**!
+   - In 2 minutes, you will receive a live URL: `https://ai-quiz-generator.onrender.com`.
+
+### Option B: Deploy on PythonAnywhere (No Git Required)
+1. Go to [pythonanywhere.com](https://www.pythonanywhere.com) and register for a free beginner account.
+2. Under the **Files** tab, upload your project folder or zip.
+3. Open a **Bash Console** and install requirements:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Under the **Web** tab:
+   - Click **Add a new web app**, choose **Flask**, and select **Python 3.11**.
+   - Set the working directory to `/home/yourusername/AI_QUIZ_GENERATOR`.
+   - Edit the WSGI file to point to your `app`:
+     ```python
+     import sys
+     path = '/home/yourusername/AI_QUIZ_GENERATOR'
+     if path not in sys.path:
+         sys.path.append(path)
+     from app import app as application
+     ```
+   - Click **Reload**! Your app is live at `https://yourusername.pythonanywhere.com`.
+
 ---
 
 ## 📜 License
