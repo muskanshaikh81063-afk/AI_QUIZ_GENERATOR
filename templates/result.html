@@ -110,10 +110,6 @@
 
                     <!-- Action Buttons -->
                     <div class="d-flex justify-content-center gap-2 flex-wrap pt-3 border-top">
-                        <button type="button" class="btn btn-success px-4 fw-bold" onclick="toggleResultAnswers()">
-                            <i id="toggleAnswersBtnIcon" class="bi bi-eye me-1"></i> 
-                            <span id="toggleAnswersBtnText">Show Detailed Answers</span>
-                        </button>
                         <a href="{{ url_for('attempt_quiz', quiz_id=result.quiz_id) }}" class="btn btn-primary px-4">
                             <i class="bi bi-arrow-repeat me-1"></i> Retake Quiz
                         </a>
@@ -126,18 +122,15 @@
                     </div>
                 </div>
 
-                <!-- Detailed Question Breakdown (Revealed when student clicks Show Detailed Answers) -->
-                <div id="detailedAnswersContainer" class="card border-0 shadow-sm p-4 p-md-5 mb-5" style="display: none;">
+                <!-- Detailed Question Breakdown (Shown at the same time after submission) -->
+                <div id="detailedAnswersContainer" class="card border-0 shadow-sm p-4 p-md-5 mb-5">
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
                         <div>
                             <h4 class="fw-bold mb-1">
-                                <i class="bi bi-card-checklist text-primary me-2"></i> Detailed Answers & Explanations
+                                <i class="bi bi-card-checklist text-primary me-2"></i> Detailed Answers & Review
                             </h4>
-                            <p class="text-muted small mb-0">Review each question with your answer, the correct answer, and reasoning.</p>
+                            <p class="text-muted small mb-0">Review each question with your answer, the correct answer, and explanation.</p>
                         </div>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleResultAnswers()">
-                            <i class="bi bi-eye-slash me-1"></i> Hide
-                        </button>
                     </div>
 
                     {% for item in result.results_detail %}
