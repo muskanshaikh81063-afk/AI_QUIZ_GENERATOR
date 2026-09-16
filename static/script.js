@@ -142,26 +142,6 @@ function generateAndStartQuiz() {
     });
 }
 
-// -------------------------------------------------------------------
-// Toggle Detailed Answers on Result Page
-// -------------------------------------------------------------------
-function toggleResultAnswers() {
-    const container = document.getElementById("detailedAnswersContainer");
-    const btnText = document.getElementById("toggleAnswersBtnText");
-    const btnIcon = document.getElementById("toggleAnswersBtnIcon");
-
-    if (!container) return;
-
-    if (container.style.display === "none") {
-        container.style.display = "block";
-        if (btnText) btnText.textContent = "Hide Detailed Answers";
-        if (btnIcon) btnIcon.className = "bi bi-eye-slash me-1";
-    } else {
-        container.style.display = "none";
-        if (btnText) btnText.textContent = "Show Detailed Answers";
-        if (btnIcon) btnIcon.className = "bi bi-eye me-1";
-    }
-}
 
 // -------------------------------------------------------------------
 // Generate Quiz Handler (Optional Customization Mode)
