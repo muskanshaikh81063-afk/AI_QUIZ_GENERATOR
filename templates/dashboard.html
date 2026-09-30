@@ -87,11 +87,11 @@
                 <div class="stat-card shadow-sm">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <span class="text-muted small text-uppercase fw-semibold">Quizzes Created</span>
-                            <h2 class="fw-bold my-1">{{ quiz_count }}</h2>
-                            <span class="small text-primary"><i class="bi bi-folder-check me-1"></i> In your library</span>
+                            <span class="text-muted small text-uppercase fw-bold" style="letter-spacing: 0.5px;">Quizzes Created</span>
+                            <h2 class="fw-bold my-1 text-dark">{{ quiz_count }}</h2>
+                            <span class="small text-primary fw-semibold"><i class="bi bi-folder-check me-1"></i> In your library</span>
                         </div>
-                        <div class="fs-1 text-primary opacity-75">
+                        <div class="stat-icon stat-icon-primary">
                             <i class="bi bi-journal-bookmark-fill"></i>
                         </div>
                     </div>
@@ -102,11 +102,11 @@
                 <div class="stat-card stat-success shadow-sm">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <span class="text-muted small text-uppercase fw-semibold">Quizzes Attempted</span>
-                            <h2 class="fw-bold my-1">{{ attempt_count }}</h2>
-                            <span class="small text-success"><i class="bi bi-check2-all me-1"></i> Practice tests completed</span>
+                            <span class="text-muted small text-uppercase fw-bold" style="letter-spacing: 0.5px;">Tests Completed</span>
+                            <h2 class="fw-bold my-1 text-dark">{{ attempt_count }}</h2>
+                            <span class="small text-success fw-semibold"><i class="bi bi-check2-all me-1"></i> Total attempts</span>
                         </div>
-                        <div class="fs-1 text-success opacity-75">
+                        <div class="stat-icon stat-icon-success">
                             <i class="bi bi-pencil-square"></i>
                         </div>
                     </div>
@@ -117,12 +117,12 @@
                 <div class="stat-card stat-warning shadow-sm">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <span class="text-muted small text-uppercase fw-semibold">Average Score</span>
-                            <h2 class="fw-bold my-1">{{ avg_score }}%</h2>
-                            <span class="small text-warning"><i class="bi bi-bar-chart-line-fill me-1"></i> Overall performance</span>
+                            <span class="text-muted small text-uppercase fw-bold" style="letter-spacing: 0.5px;">Average Score</span>
+                            <h2 class="fw-bold my-1 text-dark">{{ avg_score }}%</h2>
+                            <span class="small text-warning fw-semibold"><i class="bi bi-trophy-fill me-1"></i> Overall performance</span>
                         </div>
-                        <div class="fs-1 text-warning opacity-75">
-                            <i class="bi bi-trophy-fill"></i>
+                        <div class="stat-icon stat-icon-warning">
+                            <i class="bi bi-bar-chart-line-fill"></i>
                         </div>
                     </div>
                 </div>
@@ -132,34 +132,34 @@
         <!-- Quick Actions Grid -->
         <div class="row g-3 mb-5">
             <div class="col-md-6 col-lg-3">
-                <a href="{{ url_for('upload') }}" class="card text-decoration-none h-100 p-4 border-0 shadow-sm text-center">
-                    <div class="fs-2 text-danger mb-2"><i class="bi bi-file-earmark-pdf-fill"></i></div>
-                    <h6 class="fw-bold text-dark">Upload PDF</h6>
+                <a href="{{ url_for('upload') }}" class="card action-card text-decoration-none h-100 p-4 border-0 shadow-sm text-center">
+                    <div class="fs-1 text-danger mb-2"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+                    <h6 class="fw-bold text-dark mb-1">Upload PDF</h6>
                     <p class="text-muted small mb-0">Extract textbook chapters or lecture slides</p>
                 </a>
             </div>
 
             <div class="col-md-6 col-lg-3">
-                <a href="{{ url_for('upload') }}" class="card text-decoration-none h-100 p-4 border-0 shadow-sm text-center">
-                    <div class="fs-2 text-primary mb-2"><i class="bi bi-clipboard-data-fill"></i></div>
-                    <h6 class="fw-bold text-dark">Paste Notes</h6>
+                <a href="{{ url_for('upload') }}" class="card action-card text-decoration-none h-100 p-4 border-0 shadow-sm text-center">
+                    <div class="fs-1 text-primary mb-2"><i class="bi bi-clipboard-data-fill"></i></div>
+                    <h6 class="fw-bold text-dark mb-1">Paste Notes</h6>
                     <p class="text-muted small mb-0">Copy-paste revision summaries or code snippets</p>
                 </a>
             </div>
 
             <div class="col-md-6 col-lg-3">
-                <a href="{{ url_for('upload') }}" class="card text-decoration-none h-100 p-4 border-0 shadow-sm text-center">
-                    <div class="fs-2 text-success mb-2"><i class="bi bi-magic"></i></div>
-                    <h6 class="fw-bold text-dark">Generate Quiz</h6>
+                <a href="{{ url_for('upload') }}" class="card action-card text-decoration-none h-100 p-4 border-0 shadow-sm text-center">
+                    <div class="fs-1 text-success mb-2"><i class="bi bi-magic"></i></div>
+                    <h6 class="fw-bold text-dark mb-1">Generate Quiz</h6>
                     <p class="text-muted small mb-0">Select MCQs, True/False & difficulty level</p>
                 </a>
             </div>
 
             <div class="col-md-6 col-lg-3">
-                <a href="{{ url_for('history') }}" class="card text-decoration-none h-100 p-4 border-0 shadow-sm text-center">
-                    <div class="fs-2 text-info mb-2"><i class="bi bi-clock-history"></i></div>
-                    <h6 class="fw-bold text-dark">Quiz History</h6>
-                    <p class="text-muted small mb-0">Review past tests, retake quizzes & view scores</p>
+                <a href="{{ url_for('history') }}" class="card action-card text-decoration-none h-100 p-4 border-0 shadow-sm text-center">
+                    <div class="fs-1 text-info mb-2"><i class="bi bi-clock-history"></i></div>
+                    <h6 class="fw-bold text-dark mb-1">Quiz History</h6>
+                    <p class="text-muted small mb-0">Review all past attempts & scores</p>
                 </a>
             </div>
         </div>

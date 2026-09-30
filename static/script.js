@@ -458,3 +458,27 @@ function escapeHtml(text) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
+// -------------------------------------------------------------------
+// Password Visibility Toggle
+// -------------------------------------------------------------------
+function togglePasswordVisibility(fieldId, btnElem) {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+
+    const icon = btnElem.querySelector("i");
+    if (input.type === "password") {
+        input.type = "text";
+        if (icon) {
+            icon.classList.remove("bi-eye");
+            icon.classList.add("bi-eye-slash");
+        }
+    } else {
+        input.type = "password";
+        if (icon) {
+            icon.classList.remove("bi-eye-slash");
+            icon.classList.add("bi-eye");
+        }
+    }
+}
+

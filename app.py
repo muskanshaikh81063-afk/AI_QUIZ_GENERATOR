@@ -183,7 +183,7 @@ def index():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    """User registration."""
+    """User registration with permanent database persistence."""
     if "user_id" in session:
         return redirect(url_for("dashboard"))
 
@@ -207,9 +207,12 @@ def register():
             return render_template("register.html", name=name, email=email)
 
         db = get_db()
-        existing = db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+        existing = db.execute(
+            "SELECT id FROM users WHERE LOWER(email) = LOWER(?) OR LOWER(name) = LOWER(?)",
+            (email, name)
+        ).fetchone()
         if existing:
-            flash("An account with this email already exists. Please log in.", "warning")
+            flash("An account with this email or username already exists. Please log in.", "warning")
             return redirect(url_for("login"))
 
         # Hash password securely
@@ -232,35 +235,39 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """User login."""
+    """User login supporting both email and username."""
     if "user_id" in session:
         return redirect(url_for("dashboard"))
 
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
+        identifier = (request.form.get("email_or_username") or request.form.get("email", "")).strip()
         password = request.form.get("password", "")
 
-        if not email or not password:
-            flash("Please enter both email and password.", "danger")
-            return render_template("login.html", email=email)
+        if not identifier or not password:
+            flash("Please enter your username/email and password.", "danger")
+            return render_template("login.html", email=identifier)
 
         db = get_db()
-        user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        user = db.execute(
+            "SELECT * FROM users WHERE LOWER(email) = LOWER(?) OR LOWER(name) = LOWER(?)",
+            (identifier, identifier)
+        ).fetchone()
 
         if user and check_password_hash(user["password"], password):
+            session.permanent = True
             session["user_id"] = user["id"]
             session["user_name"] = user["name"]
             flash(f"Welcome back, {user['name']}!", "success")
             return redirect(url_for("dashboard"))
         else:
-            flash("Invalid email or password. Please try again.", "danger")
+            flash("Invalid email/username or password. Please try again.", "danger")
 
     return render_template("login.html")
 
 
 @app.route("/logout")
 def logout():
-    """Log out user."""
+    """Log out user by clearing the browser session only (preserves user account in DB)."""
     session.clear()
     flash("You have been logged out successfully.", "info")
     return redirect(url_for("login"))
@@ -550,12 +557,14 @@ def submit_quiz(quiz_id):
     percentage = round((score / total_questions) * 100, 1)
 
     # Save attempt in quiz_attempts table
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cursor = db.cursor()
     cursor.execute("""
         INSERT INTO quiz_attempts (
             quiz_id, user_id, score, total_questions, correct_answers, 
-            wrong_answers, unanswered, percentage, user_answers
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            wrong_answers, unanswered, percentage, user_answers,
+            created_at, completed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         quiz_id,
         user_id,
@@ -565,7 +574,9 @@ def submit_quiz(quiz_id):
         wrong_answers,
         unanswered_count,
         percentage,
-        json.dumps(user_answers)
+        json.dumps(user_answers),
+        now_str,
+        now_str
     ))
     attempt_id = cursor.lastrowid
 
@@ -677,29 +688,35 @@ def quiz_result(quiz_id):
 @app.route("/history")
 @login_required
 def history():
-    """Display all saved quizzes and past attempts."""
+    """Display all past quiz attempts for the logged-in user, newest first."""
     db = get_db()
     user_id = session["user_id"]
 
-    quizzes = db.execute("""
+    attempts = db.execute("""
         SELECT 
-            q.id, 
-            q.title, 
-            q.difficulty, 
-            q.created_at,
-            COUNT(DISTINCT k.id) AS question_count,
-            COUNT(DISTINCT a.id) AS total_attempts,
-            MAX(a.score) AS best_score,
-            MAX(a.percentage) AS best_percentage
-        FROM quizzes q
-        LEFT JOIN questions k ON q.id = k.quiz_id
-        LEFT JOIN quiz_attempts a ON q.id = a.quiz_id AND a.user_id = q.user_id
-        WHERE q.user_id = ?
-        GROUP BY q.id
-        ORDER BY q.created_at DESC
+            qa.id AS attempt_id,
+            qa.id AS id,
+            qa.quiz_id,
+            qa.user_id,
+            qa.score,
+            qa.total_questions,
+            qa.total_questions AS question_count,
+            qa.percentage,
+            qa.correct_answers,
+            qa.wrong_answers,
+            qa.unanswered,
+            COALESCE(qa.completed_at, qa.created_at, datetime('now')) AS completed_at,
+            COALESCE(qa.completed_at, qa.created_at, datetime('now')) AS created_at,
+            COALESCE(q.title, 'Untitled Quiz') AS quiz_title,
+            COALESCE(q.title, 'Untitled Quiz') AS title,
+            COALESCE(q.difficulty, 'Medium') AS difficulty
+        FROM quiz_attempts qa
+        LEFT JOIN quizzes q ON qa.quiz_id = q.id
+        WHERE qa.user_id = ?
+        ORDER BY qa.id DESC
     """, (user_id,)).fetchall()
 
-    return render_template("history.html", quizzes=quizzes)
+    return render_template("history.html", attempts=attempts, quizzes=attempts)
 
 
 @app.route("/quiz/<int:quiz_id>/delete", methods=["POST"])

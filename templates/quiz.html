@@ -93,14 +93,14 @@
                                                value="{{ opt }}"
                                                onchange="markAnswerSelected({{ q_idx }}, '{{ q.id }}', '{{ opt }}')">
                                         <label class="option-label" for="opt_{{ q.id }}_{{ loop.index0 }}">
-                                            <span class="fw-semibold me-2">
+                                            <span class="option-badge">
                                                 {% if q.question_type == 'MCQ' %}
-                                                    {{ ['A', 'B', 'C', 'D'][loop.index0] if loop.index0 < 4 else loop.index }}.
+                                                    {{ ['A', 'B', 'C', 'D'][loop.index0] if loop.index0 < 4 else loop.index }}
                                                 {% else %}
                                                     &bull;
                                                 {% endif %}
                                             </span>
-                                            {{ opt }}
+                                            <span>{{ opt }}</span>
                                         </label>
                                     </div>
                                 {% endfor %}

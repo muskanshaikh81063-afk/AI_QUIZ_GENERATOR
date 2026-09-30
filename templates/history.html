@@ -66,68 +66,70 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
             <div>
                 <h2 class="fw-bold mb-1">My Quiz Library & History</h2>
-                <p class="text-muted mb-0">Browse and practice all your saved quizzes</p>
+                <p class="text-muted mb-0">Review all your past quiz attempts and practice sessions</p>
             </div>
-            <a href="{{ url_for('upload') }}" class="btn btn-primary">
+            <a href="{{ url_for('upload') }}" class="btn btn-primary shadow-sm">
                 <i class="bi bi-plus-lg me-1"></i> Create New Quiz
             </a>
         </div>
 
-        {% if quizzes %}
+        {% set attempt_list = attempts if attempts is defined and attempts else quizzes %}
+        {% if attempt_list %}
             <div class="row g-4 mb-5">
-                {% for q in quizzes %}
+                {% for att in attempt_list %}
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow-sm p-4 d-flex flex-column">
+                        <div class="card h-100 border-0 shadow-sm p-4 d-flex flex-column history-card">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="badge {% if q.difficulty == 'Easy' %}bg-success{% elif q.difficulty == 'Hard' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
-                                    {{ q.difficulty }}
+                                <span class="badge {% if att.difficulty == 'Easy' %}bg-success{% elif att.difficulty == 'Hard' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                    {{ att.difficulty }}
                                 </span>
                                 <span class="text-muted small">
-                                    <i class="bi bi-calendar3 me-1"></i> {{ q.created_at[:10] }}
+                                    <i class="bi bi-calendar3 me-1"></i> {{ att.completed_at[:16] if att.completed_at else 'Recent' }}
                                 </span>
                             </div>
 
-                            <h5 class="fw-bold mb-2 text-dark">{{ q.title }}</h5>
+                            <h5 class="fw-bold mb-2 text-dark">{{ att.quiz_title }}</h5>
 
-                            <div class="text-muted small mb-3">
-                                <div><i class="bi bi-question-circle me-1 text-primary"></i> <strong>{{ q.question_count }}</strong> questions</div>
-                                <div><i class="bi bi-arrow-repeat me-1 text-info"></i> <strong>{{ q.total_attempts }}</strong> attempt(s)</div>
-                                {% if q.total_attempts > 0 %}
-                                    <div class="text-success fw-semibold">
-                                        <i class="bi bi-trophy me-1"></i> Best Score: {{ q.best_score }}/{{ q.question_count }} ({{ q.best_percentage }}%)
-                                    </div>
-                                {% else %}
-                                    <div class="text-secondary fst-italic">
-                                        <i class="bi bi-dash-circle me-1"></i> Not attempted yet
-                                    </div>
-                                {% endif %}
+                            <div class="mb-2">
+                                <span class="badge bg-light text-secondary border px-2 py-1">
+                                    <i class="bi bi-hash"></i> Attempt #{{ att.attempt_id }}
+                                </span>
                             </div>
 
-                            <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
-                                <a href="{{ url_for('attempt_quiz', quiz_id=q.id) }}" class="btn btn-primary btn-sm px-3">
-                                    <i class="bi bi-play-fill me-1"></i> Attempt Quiz
-                                </a>
+                            <div class="mb-3">
+                                <div class="score-badge {% if att.percentage >= 75 %}high{% elif att.percentage >= 50 %}med{% else %}low{% endif %} mb-2">
+                                    <i class="bi bi-trophy-fill"></i> Score: {{ att.score }} / {{ att.total_questions }} ({{ att.percentage }}%)
+                                </div>
+                                <div class="small text-muted">
+                                    <span class="text-success fw-medium"><i class="bi bi-check-circle me-1"></i>{{ att.correct_answers }} correct</span> &bull; 
+                                    <span class="text-danger fw-medium"><i class="bi bi-x-circle me-1"></i>{{ att.wrong_answers }} wrong</span>
+                                    {% if att.unanswered > 0 %}
+                                        &bull; <span class="text-warning fw-medium"><i class="bi bi-dash-circle me-1"></i>{{ att.unanswered }} skipped</span>
+                                    {% endif %}
+                                </div>
+                            </div>
 
-                                <form action="{{ url_for('delete_quiz', quiz_id=q.id) }}" method="POST" 
-                                      onsubmit="return confirm('Are you sure you want to delete this quiz? This action cannot be undone.')">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Quiz">
-                                        <i class="bi bi-trash3"></i>
-                                    </button>
-                                </form>
+                            <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center gap-2">
+                                <a href="{{ url_for('attempt_result', attempt_id=att.attempt_id) }}" class="btn btn-primary btn-sm px-3">
+                                    <i class="bi bi-eye me-1"></i> View Result
+                                </a>
+                                <a href="{{ url_for('attempt_quiz', quiz_id=att.quiz_id) }}" class="btn btn-outline-primary btn-sm px-3">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Retake
+                                </a>
                             </div>
                         </div>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <div class="card border-0 shadow-sm p-5 text-center my-4">
+            <div class="card border-0 shadow-sm p-5 text-center my-4 rounded-4">
                 <div class="fs-1 text-muted mb-3"><i class="bi bi-journal-x"></i></div>
-                <h4 class="fw-bold">No Saved Quizzes Found</h4>
+                <h4 class="fw-bold">No Quiz Attempts Found</h4>
                 <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">
-                    You haven't generated or saved any quizzes yet. Upload a PDF or paste notes to generate your first custom quiz!
+                    You haven't attempted any quizzes yet. Generate a new quiz or select an existing one to test your knowledge!
                 </p>
                 <div>
-                    <a href="{{ url_for('upload') }}" class="btn btn-primary px-4 py-2">
+                    <a href="{{ url_for('upload') }}" class="btn btn-primary px-4 py-2 shadow-sm">
                         <i class="bi bi-plus-circle me-1"></i> Generate Your First Quiz
                     </a>
                 </div>
